@@ -12,7 +12,7 @@ function setListeningState() {
 
 function setThinkingState() {
     btn.className = "try-btn thinking";
-    btnIcon.className = "fas fa-spinner";
+    btnIcon.className = "fas fa-spinner fa-spin";
     btnText.textContent = "Thinking...";
 }
 
@@ -67,25 +67,37 @@ function startListening() {
 
 async function sendToBackend(text) {
     try {
-        const res = await fetch("http://127.0.0.1:8000/chat", {
+        const res = await fetch("/chat", {   // ✅ FIXED
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ message: text })
         });
 
+        if (!res.ok) {
+            throw new Error("Server error");
+        }
+
         const data = await res.json();
-        setTimeout(() => playAudio(data.audio_file), 400);
+
+        if (data.audio_file) {
+            setTimeout(() => playAudio(data.audio_file), 400);
+        } else {
+            console.error("No audio file received");
+            stopAll();
+        }
 
     } catch (err) {
-        console.error(err);
+        console.error("Fetch error:", err);
         stopAll();
     }
 }
 
-function playAudio(file) {
+function playAudio(filePath) {
     setSpeakingState();
-    currentAudio = new Audio(`http://127.0.0.1:8000/static/${file}`);
+
+    currentAudio = new Audio(filePath);  // ✅ Uses backend path directly
     currentAudio.play();
+
     currentAudio.onended = stopAll;
 }
 
@@ -167,66 +179,55 @@ document.querySelectorAll(".component-title").forEach(button => {
         item.classList.toggle("active");
     });
 });
+
+/* ================= EMAIL JS ================= */
+
 (function () {
-  emailjs.init("vU8spTE_onnpQsrw5"); // Public Key
+    emailjs.init("vU8spTE_onnpQsrw5");
 })();
 
 const contactForm = document.querySelector("#contact-form");
 const submitBtn = contactForm.querySelector('input[type="submit"]');
 
 contactForm.addEventListener("submit", function (e) {
-  e.preventDefault();
+    e.preventDefault();
 
-  // prevent multiple clicks
-  submitBtn.disabled = true;
-  submitBtn.value = "Sending...";
+    submitBtn.disabled = true;
+    submitBtn.value = "Sending...";
 
-  emailjs.sendForm(
-    "service_mddh6mj",      // Service ID
-    "template_7cgoc71",     // Template ID
-    this
-  ).then(
-    () => {
-      // success
-      submitBtn.value = "Message Sent ✓";
-      contactForm.reset();
+    emailjs.sendForm(
+        "service_mddh6mj",
+        "template_7cgoc71",
+        this
+    ).then(
+        () => {
+            submitBtn.value = "Message Sent ✓";
+            contactForm.reset();
 
-      setTimeout(() => {
-        submitBtn.disabled = false;
-        submitBtn.value = "Send Message";
-      }, 3000);
-    },
-    (error) => {
-      // error
-      console.error(error);
-      submitBtn.disabled = false;
-      submitBtn.value = "Send Message";
-      alert("Message not sent ❌ Please try again");
-    }
-  );
+            setTimeout(() => {
+                submitBtn.disabled = false;
+                submitBtn.value = "Send Message";
+            }, 3000);
+        },
+        (error) => {
+            console.error(error);
+            submitBtn.disabled = false;
+            submitBtn.value = "Send Message";
+            alert("Message not sent ❌ Please try again");
+        }
+    );
 });
 
+/* ================= READ MORE ================= */
 
-
-function showStatus(message, type) {
-  const status = document.getElementById("form-status");
-  status.innerText = message;
-  status.className = `form-status ${type}`;
-
-  setTimeout(() => {
-    status.innerText = "";
-    status.className = "form-status";
-  }, 4000);
-}
 const readBtn = document.querySelector(".read-more-btn");
 const codeContainer = document.getElementById("codeContainer");
 
 readBtn.addEventListener("click", function () {
     codeContainer.classList.toggle("expanded");
 
-    if (codeContainer.classList.contains("expanded")) {
-        readBtn.textContent = "Show Less";
-    } else {
-        readBtn.textContent = "Read More";
-    }
+    readBtn.textContent =
+        codeContainer.classList.contains("expanded")
+            ? "Show Less"
+            : "Read More";
 });
