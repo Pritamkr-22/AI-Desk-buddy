@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>MIRA DESK BUDDY</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+    <!-- ================= NAVBAR ================= -->
+    <nav class="navbar">
+        <div class="logo">MIRA<span> DESK BUDDY</span></div>
+
+        <div class="menu-toggle" id="menuToggle">
+            <i class="fas fa-bars"></i>
+        </div>
+
+        <ul class="nav-links" id="navLinks">
+            <li class="nav-item"><a href="#home">Home</a></li>
+            <li class="nav-item"><a href="#about">About</a></li>
+            <li class="nav-item"><a href="#code">Code</a></li>
+            <li class="nav-item"><a href="#components">Components</a></li>
+            <li class="nav-item"><a href="#working">Working</a></li>
+            <li class="nav-item"><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <!-- ================= HERO ================= -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <h1 class="hero-title">MIRA YOUR <span>Desk Buddy</span></h1>
+
+            <img src="/static/images/bot-removebg-preview.png" class="hero-img" alt="AI Bot">
+
+            <button id="controlBtn" class="try-btn" onclick="toggleListening()">
+                <span class="btn-icon"><i class="fas fa-microphone"></i></span>
+                <span class="btn-text">Start Conversation</span>
+            </button>
+        </div>
+    </section>
+    <section class="about-section" id="about">
+        <div class="about-box">
+            <h2>AI Desk Buddy – Project Introduction</h2>
+            <p>
+                In the modern era, technology is advancing rapidly, and artificial intelligence (AI) has become an
+                integral part of daily life. Our project, <strong>AI Desk Buddy</strong>, is designed to function as an
+                intelligent desktop assistant that can interact with users in real-time, answer questions, and provide
+                useful information instantly. Unlike traditional digital assistants that require typing or touchscreen
+                inputs, AI Desk Buddy focuses on voice-based interaction, making it convenient, hands-free, and
+                user-friendly.
+            </p>
+
+            <p>
+                The system works by capturing the user’s voice through a high-quality microphone, which is connected to
+                the Raspberry Pi 5, the central processing unit of the project. The voice input is then sent to the
+                Gemini API, an advanced AI service that understands natural language, processes the query, and generates
+                accurate and context-aware responses. Once the AI formulates an answer, it is played back to the user
+                via a speaker system connected through an audio amplifier, ensuring clear and audible responses. This
+                interaction happens almost instantly, providing a seamless conversational experience between the user
+                and the AI Desk Buddy.
+            </p>
+
+            <p>
+                AI Desk Buddy is built using a combination of software and hardware components that work together to
+                create an intelligent and interactive system. The Raspberry Pi 5 handles data processing, connectivity,
+                and hardware control, while the Gemini API provides the intelligence behind the responses. The hardware
+                components, including the microphone, audio amplifier, and speaker, allow smooth communication, making
+                the device practical for desktop use. The system is compact, portable, and can be easily set up in
+                offices, study areas, or personal workspaces.
+            </p>
+
+            <p>
+                One of the main advantages of AI Desk Buddy is its ability to provide instant, accurate answers without
+                the need to manually search through multiple sources. It can help students with learning, assist
+                professionals with quick information retrieval, and support everyday tasks that require fast and
+                reliable answers. The project also demonstrates how AI can be effectively integrated with hardware to
+                create smart, interactive devices that improve productivity and convenience.
+            </p>
+
+            <p>
+                In conclusion, AI Desk Buddy represents a step forward in bringing AI into everyday life. By combining
+                voice recognition, advanced AI processing, and efficient hardware, it delivers a practical and
+                intelligent desktop assistant capable of simplifying tasks, enhancing learning, and improving
+                efficiency. This project not only highlights the capabilities of AI technology but also showcases its
+                potential to transform ordinary desktops into smart, responsive workspaces.
+            </p>
+
+        </div>
+    </section>
+
+<section id="code" class="section code-section">
+    <div class="code-box">
+
+        <div class="code-header">
+            <div class="header-left">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+                <span class="file-name">main.py</span>
+            </div>
+
+            <button class="copy-btn" onclick="copyCode()">Copy Code</button>
+        </div>
+
+        <pre id="codeContainer"><code id="codeBlock">
+<span class="kw">import</span> google.generativeai <span class="kw">as</span> genai
+<span class="kw">import</span> speech_recognition <span class="kw">as</span> sr
+<span class="kw">import</span> subprocess
+<span class="kw">import</span> uuid
+<span class="kw">import</span> asyncio
+<span class="kw">import</span> edge_tts
+<span class="kw">import</span> threading
+<span class="kw">import</span> os
+<span class="kw">import</span> time
+<span class="kw">import</span> socket
+<span class="kw">import</span> sys
+<span class="kw">import</span> dbus
+<span class="kw">import</span> dbus.service
+<span class="kw">import</span> dbus.mainloop.glib
+<span class="kw">from</span> gi.repository <span class="kw">import</span> GLib
+<span class="kw">from</span> PIL <span class="kw">import</span> Image, ImageFont
+<span class="kw">from</span> luma.core.interface.serial <span class="kw">import</span> i2c
+<span class="kw">from</span> luma.oled.device <span class="kw">import</span> sh1106
+<span class="kw">from</span> luma.core.render <span class="kw">import</span> canvas
+<span class="kw">import</span> RPi.GPIO <span class="kw">as</span> GPIO
+
+<span class="cm"># ================== CONFIGURATION ==================</span>
+<span class="cm"># --- AI & Voice ---</span>
+api_keys = [
+    <span class="str">"ENTER YOUR API KEY"</span>,
+    <span class="str">"ENTER YOUR API KEY"</span>,
+    <span class="str">"ENTER YOUR API KEY"</span>
+]
+current_key_index = <span class="num">0</span>
+chat = <span class="kw">None</span>
+LANG = <span class="str">"en-IN"</span>
+MAX_WORDS = <span class="num">25</span>
+WAKE_WORDS = [<span class="str">"mira"</span>, <span class="str">"meera"</span>, <span class="str">"mera"</span>, <span class="str">"mara"</span>, <span class="str">"mere"</span>]
+MIC_DEVICE_INDEX = <span class="num">1</span>
+
+<span class="cm"># --- Audio Cache (Updated) ---</span>
+SYSTEM_PHRASES = {
+    <span class="str">"Internet connected"</span>: <span class="str">"sys_net_connected.mp3"</span>,
+    <span class="str">"Internet not connected"</span>: <span class="str">"sys_no_net.mp3"</span>,
+    <span class="str">"Bluetooth setup"</span>: <span class="str">"sys_bt_setup.mp3"</span>,
+    <span class="str">"I am ready"</span>: <span class="str">"sys_ready.mp3"</span>,
+    <span class="str">"Internet lost"</span>: <span class="str">"sys_net_lost.mp3"</span>,
+    <span class="str">"I cannot connect to my brain."</span>: <span class="str">"sys_brain_error.mp3"</span>,
+    <span class="str">"Don't touch me"</span>: <span class="str">"sys_dont_touch.mp3"</span>  <span class="cm"># &lt;--- Added for Shy Mode</span>
+}
+
+<span class="cm"># --- Bluetooth ---</span>
+AF_BLUETOOTH = <span class="num">31</span>
+BTPROTO_RFCOMM = <span class="num">3</span>
+RFCOMM_PORT = <span class="num">1</span>
+
+<span class="cm"># --- Hardware ---</span>
+TOUCH_PIN = <span class="num">17</span>
+OLED_PORT = <span class="num">1</span>
+OLED_ADDR = <span class="num">0x3C</span>
+
+<span class="cm"># ================== HARDWARE SETUP ==================</span>
+<span class="cm"># OLED</span>
+<span class="kw">try</span>:
+    serial = i2c(port=OLED_PORT, address=OLED_ADDR)
+    device = sh1106(serial, width=<span class="num">128</span>, height=<span class="num">64</span>)
+    <span class="cm"># Load Font</span>
+    font_large = ImageFont.truetype(<span class="str">"/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"</span>, <span class="num">16</span>)
+    font_small = ImageFont.truetype(<span class="str">"/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"</span>, <span class="num">12</span>)
+<span class="kw">except</span> Exception <span class="kw">as</span> e:
+    <span class="kw">print</span>(f<span class="str">"OLED Setup Error: {e}"</span>)
+    device = <span class="kw">None</span>
+
+<span class="cm"># GPIO</span>
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(TOUCH_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
+<span class="cm"># Global State</span>
+current_state = <span class="str">"booting"</span>  <span class="cm"># idle, listening, thinking, speaking, shy, no_internet, net_connected, bluetooth_wait, ready</span>
+
+<span class="cm"># ================== NETWORK TOOLS ==================</span>
+<span class="kw">def</span> is_internet_available():
+    <span class="cm">"""Checks if Mira is connected to the internet."""</span>
+    <span class="kw">try</span>:
+        socket.create_connection((<span class="str">"8.8.8.8"</span>, <span class="num">53</span>), timeout=<span class="num">3</span>)
+        <span class="kw">return True</span>
+    <span class="kw">except</span> OSError:
+        <span class="kw">return False</span>
+
+<span class="kw">def</span> get_adapter_address():
+    <span class="kw">try</span>:
+        output = subprocess.check_output([<span class="str">"hcitool"</span>, <span class="str">"dev"</span>], text=<span class="kw">True</span>)
+        <span class="kw">for</span> line <span class="kw">in</span> output.split(<span class="str">"\n"</span>):
+            <span class="kw">if</span> <span class="str">"hci0"</span> <span class="kw">in</span> line:
+                <span class="kw">return</span> line.split(<span class="str">"\t"</span>)[<span class="num">2</span>].strip()
+    <span class="kw">except</span> Exception <span class="kw">as</span> e:
+        <span class="kw">print</span>(f<span class="str">"⚠️ Could not find adapter address: {e}"</span>)
+    <span class="kw">return None</span>
+
+<span class="kw">def</span> connect_to_wifi(ssid, password):
+    <span class="kw">print</span>(f<span class="str">"📶 Attempting to connect to WiFi: '{ssid}'..."</span>)
+    cmd = [<span class="str">"sudo"</span>, <span class="str">"nmcli"</span>, <span class="str">"device"</span>, <span class="str">"wifi"</span>, <span class="str">"connect"</span>, ssid, <span class="str">"password"</span>, password]
+    <span class="kw">try</span>:
+        result = subprocess.run(cmd, capture_output=<span class="kw">True</span>, text=<span class="kw">True</span>)
+        <span class="kw">if</span> result.returncode == <span class="num">0</span>:
+            <span class="kw">print</span>(f<span class="str">"✅ Success! Mira is now online on {ssid}."</span>)
+            <span class="kw">return True</span>
+        <span class="kw">else</span>:
+            <span class="kw">print</span>(f<span class="str">"❌ Failed: {result.stderr.strip()}"</span>)
+            <span class="kw">return False</span>
+    <span class="kw">except</span> Exception <span class="kw">as</span> e:
+        <span class="kw">print</span>(f<span class="str">"❌ Error running nmcli: {e}"</span>)
+        <span class="kw">return False</span>
+
+<span class="cm"># ================== BLUETOOTH LOGIC (Background Threads) ==================</span>
+
+<span class="kw">class</span> MiraAgent(dbus.service.Object):
+    @dbus.service.method(<span class="str">"org.bluez.Agent1"</span>, in_signature=<span class="str">"ou"</span>, out_signature=<span class="str">""</span>)
+    <span class="kw">def</span> RequestConfirmation(self, device, passkey):
+        <span class="kw">print</span>(f<span class="str">"🔓 Auto-Confirming pairing for {device}"</span>)
+        <span class="kw">return</span>
+
+    @dbus.service.method(<span class="str">"org.bluez.Agent1"</span>, in_signature=<span class="str">"o"</span>, out_signature=<span class="str">""</span>)
+    <span class="kw">def</span> RequestAuthorization(self, device):
+        <span class="kw">print</span>(f<span class="str">"🔓 Auto-Authorizing device {device}"</span>)
+        <span class="kw">return</span>
+
+    @dbus.service.method(<span class="str">"org.bluez.Agent1"</span>, in_signature=<span class="str">"os"</span>, out_signature=<span class="str">""</span>)
+    <span class="kw">def</span> AuthorizeService(self, device, uuid):
+        <span class="kw">return</span>
+
+    @dbus.service.method(<span class="str">"org.bluez.Agent1"</span>, in_signature=<span class="str">""</span>, out_signature=<span class="str">""</span>)
+    <span class="kw">def</span> Release(self):
+        <span class="kw">pass</span>
+
+<span class="kw">def</span> run_agent_loop():
+    <span class="cm">"""Runs the PIN-less pairing agent."""</span>
+    dbus.mainloop.glib.DBusGMainLoop(set_as_default=<span class="kw">True</span>)
+    bus = dbus.SystemBus()
+    path = <span class="str">"/mira/agent"</span>
+    agent = MiraAgent(bus, path)
+    obj = bus.get_object(<span class="str">"org.bluez"</span>, <span class="str">"/org/bluez"</span>)
+    manager = dbus.Interface(obj, <span class="str">"org.bluez.AgentManager1"</span>)
+    <span class="kw">try</span>:
+        manager.UnregisterAgent(path)
+    <span class="kw">except</span>:
+        <span class="kw">pass</span>
+    manager.RegisterAgent(path, <span class="str">"NoInputNoOutput"</span>)
+    manager.RequestDefaultAgent(path)
+    <span class="kw">print</span>(<span class="str">"🕵️‍♂️ Agent registered."</span>)
+    loop = GLib.MainLoop()
+    loop.run()
+
+<span class="kw">def</span> bluetooth_monitor():
+    <span class="cm">"""Monitors internet and toggles Bluetooth visibility automatically."""</span>
+    bus = dbus.SystemBus()
+    manager = dbus.Interface(bus.get_object(<span class="str">"org.bluez"</span>, <span class="str">"/"</span>), <span class="str">"org.freedesktop.DBus.ObjectManager"</span>)
+    
+    <span class="kw">while True</span>:
+        <span class="kw">try</span>:
+            objects = manager.GetManagedObjects()
+            adapter_path = <span class="kw">next</span>((p <span class="kw">for</span> p, i <span class="kw">in</span> objects.items() <span class="kw">if</span> <span class="str">"org.bluez.Adapter1"</span> <span class="kw">in</span> i), <span class="kw">None</span>)
+            
+            <span class="kw">if</span> adapter_path:
+                props = dbus.Interface(bus.get_object(<span class="str">"org.bluez"</span>, adapter_path), <span class="str">"org.freedesktop.DBus.Properties"</span>)
+                adapter_props = props.GetAll(<span class="str">"org.bluez.Adapter1"</span>)
+                
+                <span class="cm"># Check for connected devices</span>
+                connected_count = <span class="num">0</span>
+                <span class="kw">for</span> p, i <span class="kw">in</span> objects.items():
+                    <span class="kw">if</span> <span class="str">"org.bluez.Device1"</span> <span class="kw">in</span> i <span class="kw">and</span> i[<span class="str">"org.bluez.Device1"</span>].get(<span class="str">"Connected"</span>, <span class="kw">False</span>):
+                        connected_count += <span class="num">1</span>
+                
+                internet = is_internet_available()
+
+                <span class="cm"># LOGIC MATRIX</span>
+                <span class="kw">if</span> connected_count &gt; <span class="num">0</span>:
+                    <span class="cm"># Device connected? Hide to secure channel.</span>
+                    <span class="kw">if</span> adapter_props.get(<span class="str">"Discoverable"</span>):
+                        props.Set(<span class="str">"org.bluez.Adapter1"</span>, <span class="str">"Discoverable"</span>, dbus.Boolean(<span class="kw">False</span>))
+                        props.Set(<span class="str">"org.bluez.Adapter1"</span>, <span class="str">"Pairable"</span>, dbus.Boolean(<span class="kw">False</span>))
+                <span class="kw">elif not</span> internet:
+                    <span class="cm"># No Internet? Be visible!</span>
+                    <span class="kw">if not</span> adapter_props.get(<span class="str">"Discoverable"</span>):
+                        <span class="kw">print</span>(<span class="str">"🌐 Net Lost: Bluetooth Visible..."</span>)
+                        props.Set(<span class="str">"org.bluez.Adapter1"</span>, <span class="str">"Powered"</span>, dbus.Boolean(<span class="kw">True</span>))
+                        props.Set(<span class="str">"org.bluez.Adapter1"</span>, <span class="str">"Discoverable"</span>, dbus.Boolean(<span class="kw">True</span>))
+                        props.Set(<span class="str">"org.bluez.Adapter1"</span>, <span class="str">"Pairable"</span>, dbus.Boolean(<span class="kw">True</span>))
+                <span class="kw">else</span>:
+                    <span class="cm"># Internet OK? Be hidden.</span>
+                    <span class="kw">if</span> adapter_props.get(<span class="str">"Discoverable"</span>):
+                        <span class="kw">print</span>(<span class="str">"🔒 Net OK: Bluetooth Hidden."</span>)
+                        props.Set(<span class="str">"org.bluez.Adapter1"</span>, <span class="str">"Discoverable"</span>, dbus.Boolean(<span class="kw">False</span>))
+                        props.Set(<span class="str">"org.bluez.Adapter1"</span>, <span class="str">"Pairable"</span>, dbus.Boolean(<span class="kw">False</span>))
+        <span class="kw">except</span> Exception <span class="kw">as</span> e:
+            <span class="kw">print</span>(f<span class="str">"Monitor Error: {e}"</span>)
+        
+        time.sleep(<span class="num">5</span>)
+
+<span class="kw">def</span> start_rfcomm_server():
+    <span class="cm">"""Listens for WiFi credentials via Bluetooth."""</span>
+    <span class="kw">while True</span>:
+        adapter_addr = get_adapter_address()
+        <span class="kw">if not</span> adapter_addr:
+            time.sleep(<span class="num">5</span>)
+            <span class="kw">continue</span>
+            
+        <span class="kw">try</span>:
+            server_sock = socket.socket(AF_BLUETOOTH, socket.SOCK_STREAM, BTPROTO_RFCOMM)
+            server_sock.bind((adapter_addr, RFCOMM_PORT))
+            server_sock.listen(<span class="num">1</span>)
+            <span class="kw">print</span>(<span class="str">"📡 RFCOMM Server Listening..."</span>)
+            
+            <span class="kw">while True</span>:
+                client_sock, address = server_sock.accept()
+                <span class="kw">print</span>(f<span class="str">"🔗 Connected: {address}"</span>)
+                <span class="kw">try</span>:
+                    data = client_sock.recv(<span class="num">1024</span>)
+                    <span class="kw">if</span> data:
+                        msg = data.decode(<span class="str">'utf-8'</span>).strip()
+                        <span class="kw">if</span> <span class="str">","</span> <span class="kw">in</span> msg:
+                            ssid, pwd = msg.split(<span class="str">","</span>, <span class="num">1</span>)
+                            <span class="kw">if</span> connect_to_wifi(ssid.strip(), pwd.strip()):
+                                client_sock.send(<span class="str">"OK:Connected"</span>.encode(<span class="str">'utf-8'</span>))
+                            <span class="kw">else</span>:
+                                client_sock.send(<span class="str">"ERR:Failed"</span>.encode(<span class="str">'utf-8'</span>))
+                        <span class="kw">else</span>:
+                            client_sock.send(<span class="str">"ERR:Format"</span>.encode(<span class="str">'utf-8'</span>))
+                <span class="kw">except</span> Exception <span class="kw">as</span> e:
+                    <span class="kw">print</span>(f<span class="str">"Socket Error: {e}"</span>)
+                <span class="kw">finally</span>:
+                    client_sock.close()
+        <span class="kw">except</span> Exception <span class="kw">as</span> e:
+            <span class="kw">print</span>(f<span class="str">"Server Error: {e}"</span>)
+            time.sleep(<span class="num">5</span>)
+        <span class="kw">finally</span>:
+            <span class="kw">try</span>:
+                server_sock.close()
+            <span class="kw">except</span>:
+                <span class="kw">pass</span>
+
+<span class="cm"># ================== CHATBOT VISUALS &amp; LOGIC ==================</span>
+
+<span class="kw">def</span> draw_face(draw):
+    <span class="cm"># --- New States for Boot Logic ---</span>
+    <span class="kw">if</span> current_state == <span class="str">"net_connected"</span>:
+        draw.text((<span class="num">10</span>, <span class="num">25</span>), <span class="str">"Internet"</span>, font=font_large, fill=<span class="str">"white"</span>)
+        draw.text((<span class="num">10</span>, <span class="num">45</span>), <span class="str">"Connected"</span>, font=font_large, fill=<span class="str">"white"</span>)
+        
+    <span class="kw">elif</span> current_state == <span class="str">"bluetooth_wait"</span>:
+        draw.text((<span class="num">10</span>, <span class="num">20</span>), <span class="str">"Net Not Found"</span>, font=font_large, fill=<span class="str">"white"</span>)
+        draw.text((<span class="num">10</span>, <span class="num">40</span>), <span class="str">"Connect BT"</span>, font=font_large, fill=<span class="str">"white"</span>)
+        
+    <span class="kw">elif</span> current_state == <span class="str">"ready"</span>:
+        draw.text((<span class="num">25</span>, <span class="num">25</span>), <span class="str">"I Am Ready"</span>, font=font_large, fill=<span class="str">"white"</span>)
+        
+    <span class="kw">elif</span> current_state == <span class="str">"no_internet"</span>:
+        draw.text((<span class="num">10</span>, <span class="num">25</span>), <span class="str">"Internet"</span>, font=font_large, fill=<span class="str">"white"</span>)
+        draw.text((<span class="num">10</span>, <span class="num">45</span>), <span class="str">"Not Connected"</span>, font=font_large, fill=<span class="str">"white"</span>)
+
+    <span class="cm"># --- Existing States ---</span>
+    <span class="kw">elif</span> current_state == <span class="str">"idle"</span>:
+        <span class="cm"># Cute Face</span>
+        draw.ellipse((<span class="num">34</span>, <span class="num">2</span>, <span class="num">94</span>, <span class="num">62</span>), outline=<span class="str">"white"</span>)
+        draw.ellipse((<span class="num">46</span>, <span class="num">22</span>, <span class="num">62</span>, <span class="num">38</span>), fill=<span class="str">"white"</span>)
+        draw.ellipse((<span class="num">66</span>, <span class="num">22</span>, <span class="num">82</span>, <span class="num">38</span>), fill=<span class="str">"white"</span>)
+        draw.ellipse((<span class="num">50</span>, <span class="num">26</span>, <span class="num">54</span>, <span class="num">30</span>), fill=<span class="str">"black"</span>)
+        draw.ellipse((<span class="num">70</span>, <span class="num">26</span>, <span class="num">74</span>, <span class="num">30</span>), fill=<span class="str">"black"</span>)
+        draw.arc((<span class="num">55</span>, <span class="num">44</span>, <span class="num">75</span>, <span class="num">55</span>), <span class="num">0</span>, <span class="num">180</span>, fill=<span class="str">"white"</span>, width=<span class="num">2</span>)
+    <span class="kw">elif</span> current_state == <span class="str">"listening"</span>:
+        draw.text((<span class="num">20</span>, <span class="num">25</span>), <span class="str">"Listening..."</span>, font=font_large, fill=<span class="str">"white"</span>)
+    <span class="kw">elif</span> current_state == <span class="str">"thinking"</span>:
+        draw.text((<span class="num">25</span>, <span class="num">25</span>), <span class="str">"Thinking..."</span>, font=font_large, fill=<span class="str">"white"</span>)
+    <span class="kw">elif</span> current_state==<span class="str">"speaking"</span>:
+        draw.text((<span class="num">20</span>,<span class="num">25</span>), <span class="str">"Speaking..."</span>, font=font_large, fill=<span class="str">"white"</span>)
+    <span class="kw">elif</span> current_state == <span class="str">"shy"</span>:
+        <span class="cm"># Shy Face</span>
+        draw.ellipse((<span class="num">34</span>, <span class="num">2</span>, <span class="num">94</span>, <span class="num">62</span>), outline=<span class="str">"white"</span>)
+        draw.line((<span class="num">40</span>, <span class="num">38</span>, <span class="num">48</span>, <span class="num">38</span>), fill=<span class="str">"white"</span>, width=<span class="num">2</span>)
+        draw.line((<span class="num">80</span>, <span class="num">38</span>, <span class="num">88</span>, <span class="num">38</span>), fill=<span class="str">"white"</span>, width=<span class="num">2</span>)
+        draw.arc((<span class="num">58</span>, <span class="num">45</span>, <span class="num">72</span>, <span class="num">54</span>), <span class="num">0</span>, <span class="num">180</span>, fill=<span class="str">"white"</span>, width=<span class="num">2</span>)
+
+<span class="kw">def</span> oled_loop():
+    <span class="kw">while True</span>:
+        <span class="kw">with</span> canvas(device) <span class="kw">as</span> draw:
+            draw_face(draw)
+        time.sleep(<span class="num">0.1</span>)
+
+<span class="kw">async def</span> tts_async(text, filename):
+    communicate = edge_tts.Communicate(text=text, voice=<span class="str">"hi-IN-SwaraNeural"</span>)
+    <span class="kw">await</span> communicate.save(filename)
+
+<span class="kw">def</span> speak(text, force_offline=<span class="kw">False</span>):
+    <span class="cm">"""Speaks text. Uses cached file if available, otherwise generates it."""</span>
+    <span class="kw">global</span> current_state
+    <span class="kw">print</span>(f<span class="str">"[AI]: {text}"</span>)
+
+    <span class="cm"># 1. Check if we have a saved file for this phrase</span>
+    cache_filename = SYSTEM_PHRASES.get(text)
+    
+    <span class="cm"># If valid cache file exists, PLAY IT immediately and skip generation</span>
+    <span class="kw">if</span> cache_filename <span class="kw">and</span> os.path.exists(cache_filename):
+        <span class="kw">print</span>(f<span class="str">"   -&gt; Playing cached: {cache_filename}"</span>)
+        subprocess.run([<span class="str">"mpg123"</span>, <span class="str">"-q"</span>, cache_filename])
+        <span class="kw">return</span>
+
+    <span class="cm"># 2. If no cache, we must generate it.</span>
+    
+    <span class="cm"># OFFLINE CHECK: If we are offline and don't have a cache, fall back to espeak</span>
+    <span class="kw">if</span> force_offline <span class="kw">or</span> current_state == <span class="str">"no_internet"</span> <span class="kw">or not</span> is_internet_available():
+        <span class="kw">try</span>:
+            subprocess.run([<span class="str">"espeak"</span>, <span class="str">"-v"</span>, <span class="str">"en+f2"</span>, <span class="str">"-s"</span>, <span class="str">"150"</span>, text])
+        <span class="kw">except</span> Exception <span class="kw">as</span> e:
+            <span class="kw">print</span>(f<span class="str">"Offline TTS Error: {e}"</span>)
+        <span class="kw">return</span>
+
+    <span class="cm"># ONLINE GENERATION (edge_tts)</span>
+    <span class="kw">if</span> current_state != <span class="str">"no_internet"</span>:
+        current_state = <span class="str">"speaking"</span>
+    
+    <span class="cm"># Determine filename: Use fixed name if system phrase, random UUID if dynamic</span>
+    <span class="kw">if</span> cache_filename:
+        filename = cache_filename
+        delete_after = <span class="kw">False</span> <span class="cm"># Keep this file forever!</span>
+    <span class="kw">else</span>:
+        filename = f<span class="str">"tts_{uuid.uuid4()}.mp3"</span>
+        delete_after = <span class="kw">True</span>  <span class="cm"># Delete this file after playing</span>
+    
+    <span class="kw">try</span>:
+        asyncio.run(tts_async(text, filename))
+        subprocess.run([<span class="str">"mpg123"</span>, <span class="str">"-q"</span>, filename])
+    <span class="kw">except</span> Exception <span class="kw">as</span> e:
+        <span class="kw">print</span>(f<span class="str">"TTS Error: {e}"</span>)
+    <span class="kw">finally</span>:
+        <span class="cm"># Only delete if it's a temporary dynamic file</span>
+        <span class="kw">if</span> delete_after <span class="kw" >and</span> os.path.exists(filename):
+            os.remove(filename)
+        
+        <span class="kw">if</span> current_state == <span class="str">"speaking"</span>:
+            current_state = <span class="str">"idle"</span>
+
+<span class="kw">def</span> listen_once(timeout=<span class="num">5</span>, phrase_time=<span class="num">5</span>):
+    r = sr.Recognizer()
+    r.energy_threshold = <span class="num">50</span>
+    <span class="kw">try</span>:
+        <span class="kw">with</span> sr.Microphone(device_index=MIC_DEVICE_INDEX, sample_rate=<span class="num">48000</span>) <span class="kw">as</span> source:
+            r.adjust_for_ambient_noise(source, duration=<span class="num">0.4</span>)
+            audio = r.listen(source, timeout=timeout, phrase_time_limit=phrase_time)
+        <span class="kw">return</span> r.recognize_google(audio, language=LANG)
+    <span class="kw">except</span>:
+        <span class="kw">return</span> <span class="str">""</span>
+
+<span class="kw">def</span> initialize_gemini():
+    <span class="kw">global</span> current_key_index, chat
+    <span class="kw">while</span> current_key_index &lt; <span class="kw">len</span>(api_keys):
+        <span class="kw">try</span>:
+            genai.configure(api_key=api_keys[current_key_index])
+            model = genai.GenerativeModel(<span class="str">"models/gemini-2.5-flash"</span>)
+            chat = model.start_chat()
+            <span class="kw">print</span>(f<span class="str">"✅ Gemini Connected (Key {current_key_index})"</span>)
+            <span class="kw">return True</span>
+        <span class="kw">except</span> Exception <span class="kw">as</span> e:
+            <span class="kw">print</span>(f<span class="str">"❌ Key {current_key_index} Error: {e}"</span>)
+            current_key_index += <span class="num">1</span>
+    <span class="kw">return False</span>
+
+<span class="cm"># ================== INTERRUPTS ==================</span>
+<span class="kw">def</span> touch_callback(channel):
+    <span class="kw">global</span> current_state
+    <span class="kw">print</span>(<span class="str">"✨ Touch!"</span>)
+    
+    <span class="cm"># Trigger shy mode if idle/listening</span>
+    <span class="kw">if</span> current_state <span class="kw">in</span> [<span class="str">"idle"</span>, <span class="str">"listening"</span>]:
+        current_state = <span class="str">"shy"</span>
+        
+        <span class="cm"># Trigger the "Don't touch me" voice line in background</span>
+        <span class="cm"># This uses the Cache system to be super fast!</span>
+        threading.Thread(target=<span class="kw">lambda</span>: speak(<span class="str">"Don't touch me"</span>), daemon=<span class="kw">True</span>).start()
+
+<span class="kw">try</span>:
+    GPIO.add_event_detect(TOUCH_PIN, GPIO.RISING, callback=touch_callback, bouncetime=<span class="num">300</span>)
+<span class="kw">except</span> Exception <span class="kw">as</span> e:
+    <span class="kw">print</span>(f<span class="str">"GPIO Error: {e}"</span>)
+
+<span class="cm"># ================== MAIN CONTROLLER ==================</span>
+<span class="kw">def</span> main():
+    <span class="kw">global</span> current_state, chat
+    
+    <span class="cm"># 1. Start System Services (Bluetooth, OLED, etc.)</span>
+    subprocess.run([<span class="str">"sudo"</span>, <span class="str">"rfkill"</span>, <span class="str">"unblock"</span>, <span class="str">"bluetooth"</span>])
+    subprocess.run([<span class="str">"sudo"</span>, <span class="str">"sdptool"</span>, <span class="str">"add"</span>, <span class="str">"SP"</span>])
+
+    threading.Thread(target=oled_loop, daemon=<span class="kw">True</span>).start()
+    threading.Thread(target=run_agent_loop, daemon=<span class="kw">True</span>).start()
+    threading.Thread(target=bluetooth_monitor, daemon=<span class="kw">True</span>).start()
+    threading.Thread(target=start_rfcomm_server, daemon=<span class="kw">True</span>).start()
+
+    <span class="kw">print</span>(<span class="str">"🚀 Mira System Started."</span>)
+    
+    <span class="cm"># ================= FLOWCHART LOGIC =================</span>
+    
+    <span class="cm"># Check: Is Internet Connected?</span>
+    <span class="kw">if</span> is_internet_available():
+        <span class="cm"># --- LEFT PATH: Internet Connected ---</span>
+        current_state = <span class="str">"net_connected"</span>    <span class="cm"># Display "Internet Connected"</span>
+        time.sleep(<span class="num">2</span>)                      <span class="cm"># Wait so you can read the text</span>
+        speak(<span class="str">"Internet connected"</span>)
+        
+    <span class="kw">else</span>:
+        <span class="cm"># --- RIGHT PATH: Internet Not Connected ---</span>
+        current_state = <span class="str">"no_internet"</span>      <span class="cm"># Display "Internet Not Connected"</span>
+        time.sleep(<span class="num">2</span>)
+        speak(<span class="str">"Internet not connected"</span>, force_offline=<span class="kw">True</span>)
+        
+        current_state = <span class="str">"bluetooth_wait"</span>   <span class="cm"># Display "Connect Bluetooth"</span>
+        speak(<span class="str">"Bluetooth setup"</span>, force_offline=<span class="kw">True</span>)
+        
+        <span class="cm"># Loop until WiFi connects</span>
+        <span class="kw">print</span>(<span class="str">"⏳ Waiting for Internet via Bluetooth..."</span>)
+        <span class="kw">while not</span> is_internet_available():
+            time.sleep(<span class="num">2</span>)
+            
+        <span class="cm"># Rejoined Left Path</span>
+        current_state = <span class="str">"net_connected"</span>
+        time.sleep(<span class="num">2</span>)
+        speak(<span class="str">"Internet connected"</span>)
+
+    <span class="cm"># --- Chatbot File (Initialize Brain) ---</span>
+    <span class="kw">if not</span> initialize_gemini():
+        speak(<span class="str">"I cannot connect to my brain."</span>)
+
+    <span class="cm"># --- Final Step ---</span>
+    current_state = <span class="str">"ready"</span>                <span class="cm"># Display "I am ready"</span>
+    time.sleep(<span class="num">2</span>)
+    speak(<span class="str">"I am ready"</span>)
+    
+    current_state = <span class="str">"idle"</span>                 <span class="cm"># Go to Idle Mode (Cute Face)</span>
+
+    <span class="cm"># ================= END FLOWCHART =================</span>
+
+    <span class="cm"># --- MAIN LOOP (Standard Features) ---</span>
+    <span class="kw">while True</span>:
+        <span class="cm"># Safety Check: Did internet drop while running?</span>
+        <span class="kw">if not</span> is_internet_available():
+            current_state = <span class="str">"no_internet"</span>
+            speak(<span class="str">"Internet lost"</span>, force_offline=<span class="kw">True</span>)
+            <span class="kw">while not</span> is_internet_available():
+                time.sleep(<span class="num">2</span>)
+            current_state = <span class="str">"idle"</span>
+            speak(<span class="str">"Internet connected"</span>)
+            <span class="kw">continue</span>
+
+        <span class="cm"># Chatbot Interaction Cycle</span>
+        <span class="kw">try</span>:
+            <span class="kw">if</span> current_state == <span class="str">"shy"</span>:
+                time.sleep(<span class="num">2</span>)
+                current_state = <span class="str">"idle"</span>
+                <span class="kw">continue</span>
+
+            <span class="cm"># Listen</span>
+            text = listen_once(timeout=<span class="num">3</span>, phrase_time=<span class="num">5</span>).lower()
+            
+            <span class="cm"># Wake Word Check</span>
+            found_wake_word = <span class="kw">next</span>((w <span class="kw">for</span> w <span class="kw">in</span> WAKE_WORDS <span class="kw">if</span> w <span class="kw">in</span> text), <span class="kw">None</span>)
+            
+            <span class="kw">if</span> found_wake_word:
+                parts = text.split(found_wake_word)
+                question = parts[<span class="num">-1</span>].strip() <span class="kw">if</span> <span class="kw">len</span>(parts) &gt; <span class="num">1</span> <span class="kw">else</span> <span class="str">""</span>
+                
+                <span class="kw">if not</span> question:
+                    current_state = <span class="str">"listening"</span>
+                    speak(<span class="str">"Yes?"</span>)
+                    question = listen_once(timeout=<span class="num">6</span>, phrase_time=<span class="num">6</span>)
+                
+                <span class="kw">if</span> question:
+                    current_state = <span class="str">"thinking"</span>
+                    <span class="kw">try</span>:
+                        prompt = f<span class="str">"You are Mira. Max {MAX_WORDS} words: {question}"</span>
+                        response = chat.send_message(prompt)
+                        current_state=<span class="str">"speaking"</span>
+                        speak(response.text)
+                    <span class="kw">except</span> Exception <span class="kw">as</span> e:
+                        <span class="kw">print</span>(f<span class="str">"API Error: {e}"</span>)
+                        speak(<span class="str">"I am having trouble thinking."</span>)
+                        
+        <span class="kw">except</span> Exception <span class="kw">as</span> e:
+            <span class="kw">print</span>(f<span class="str">"Loop Error: {e}"</span>)
+            time.sleep(<span class="num">1</span>)
+
+<span class="kw">if</span> __name__ == <span class="str">"__main__"</span>:
+    main()
+        </code></pre>
+        <div class="read-more-container">
+      <button class="read-more-btn">Read More</button>
+    </div>
+
+    </div>
+</section>    
+<section id="components" class="section components-section">
+        <h2 class="section-title">Components Used</h2>
+
+        <div class="component-box">
+
+            <div class="component-item">
+                <button class="component-title">Raspberry Pi 5
+                    <span><img src="/static/images/8213476.png" height="20px" width="20px"></span>
+                </button>
+                <div class="component-content">
+                    <p>
+                        The Raspberry Pi 5 is a powerful single-board computer that serves as the central processing
+                        unit for our AI Desk Buddy. It handles all data processing, voice input management, and
+                        communication with the Gemini AI API. With its compact size and high performance, it efficiently
+                        runs the software that converts user questions into intelligent responses. The Raspberry Pi 5
+                        also manages hardware components like the microphone, audio amplifier, and speaker, making the
+                        desk buddy fully functional and responsive.
+                    </p>
+                </div>
+            </div>
+            <div class="component-item">
+                <button class="component-title">Active cooler
+                    <span><img src="/static/images/8213476.png" height="20px" width="20px"></span>
+                </button>
+                <div class="component-content">
+                    <p>
+                        The Active Cooler is a small cooling fan used to regulate the temperature of the Raspberry Pi 5
+                        in our AI Desk Buddy. It prevents overheating during extended use, ensuring stable performance
+                        while processing voice commands and interacting with the Gemini API. Its compact design fits
+                        neatly on the board without taking up much space. By maintaining optimal temperature, the active
+                        cooler helps the system run efficiently and reliably.
+                    </p>
+                </div>
+            </div>
+
+            <div class="component-item">
+                <button class="component-title">INMP441 MEMS Microphone
+                    <span><img src="/static/images/8213476.png" height="20px" width="20px"></span>
+                </button>
+                <div class="component-content">
+                    <p>The INMP441 MEMS Microphone Module is a high-performance digital microphone used to capture voice
+                        commands for our AI Desk Buddy. It converts sound waves into digital signals that the Raspberry
+                        Pi 5 can process efficiently. Its compact size and low power consumption make it ideal for
+                        desktop applications. With clear and accurate audio capture, it ensures that the AI system
+                        receives precise input for generating intelligent responses.
+                    </p>
+                </div>
+            </div>
+
+            <div class="component-item">
+                <button class="component-title">MAX98357A Audio Amplifier
+                    <span><img src="/static/images/8213476.png" height="20px" width="20px"></span>
+                </button>
+                <div class="component-content">
+                    <p>
+                        The MAX98357 I2S Audio Amplifier is a compact digital audio amplifier module that delivers clear
+                        sound output for our AI Desk Buddy. It receives digital audio signals directly from the
+                        Raspberry Pi 5 via the I2S interface, eliminating the need for extra DACs. The module
+                        efficiently powers a speaker, allowing the AI to respond audibly to user queries. Its small
+                        size, high-quality audio, and low power consumption make it ideal for desktop voice-interactive
+                        applications.
+                    </p>
+                </div>
+            </div>
+
+            <div class="component-item">
+                <button class="component-title">Speaker
+                    <span><img src="/static/images/8213476.png" height="20px" width="20px"></span>
+                </button>
+                <div class="component-content">
+                    <p>
+                        The Speaker is used to deliver audible responses from the AI Desk Buddy, allowing users to hear
+                        answers clearly. It is connected to the MAX98357 I2S audio amplifier, which amplifies the
+                        digital audio signals from the Raspberry Pi 5. The speaker ensures that voice responses from the
+                        Gemini AI are clear and natural, enhancing user interaction. Its compact size makes it suitable
+                        for desktop use without occupying much space.
+                    </p>
+                </div>
+            </div>
+
+            <div class="component-item">
+                <button class="component-title">Oled Display
+                    <span><img src="/static/images/8213476.png" height="20px" width="20px"></span>
+                </button>
+                <div class="component-content">
+                    <p>
+                        The OLED Display is used in our AI Desk Buddy to represent animated eyes, giving the device a
+                        more interactive and expressive appearance. It communicates with the Raspberry Pi 5 via I2C,
+                        allowing dynamic animations that reflect the system’s responses or listening status. The
+                        animated eyes enhance user engagement by providing a visual cue alongside the audible answers
+                        from the speaker. Its compact size, low power consumption, and high contrast make it ideal for
+                        desktop applications while adding a friendly and interactive element to the desk buddy.
+                    </p>
+                </div>
+            </div>
+            <div class="component-item">
+                <button class="component-title">Servo Motor
+                    <span><img src="/static/images/8213476.png" height="20px" width="20px"></span>
+                </button>
+                <div class="component-content">
+                    <p>
+                        The Servo Motor is used in our AI Desk Buddy to control head movements, making the device more
+                        interactive and lifelike. It receives precise control signals from the Raspberry Pi 5, allowing
+                        the head to turn or tilt in response to user commands or system actions. This movement, combined
+                        with the animated eyes on the OLED display, enhances the overall user experience by providing
+                        visual feedback and personality. The compact size and accurate control of the servo make it
+                        ideal for desktop applications.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+    <section class="working-section" id="working">
+        <div class="working-box">
+            <h2>Working of AI Desk Buddy (Voice-Based Chatbot)</h2>
+            <p>AI Desk Buddy is a voice-based conversational assistant designed to interact with users in a natural and
+                friendly manner. The system works by combining speech recognition, artificial intelligence, and
+                text-to-speech technologies to enable real-time communication between the user and the assistant.
+            </p>
+
+            <p>The working process begins when the system is initialized. During startup, the Gemini AI model is
+                configured using the <bold><i>google.generativeai</i></bold> library, which connects the application to
+                the Gemini API. A predefined conversation context is set so that the AI responds like a close friend,
+                using simple language, emotional tone, and short replies.
+            </p>
+
+            <p>Once initialized, the system continuously listens for user input through a microphone. The
+                speech_recognition library is used to capture the user’s voice and convert spoken audio into text. This
+                step allows the system to understand what the user is saying. Audio sensitivity parameters are adjusted
+                to reduce background noise and improve accuracy.
+            </p>
+
+            <p>After the user’s voice is successfully converted into text, the recognized text is sent to the Gemini AI
+                model. The Gemini API processes the input using natural language processing and generates a meaningful,
+                context-aware response. The response length is limited to maintain clarity and ensure a smooth
+                conversational experience.
+            </p>
+
+            <p>When the AI response is received as text, it is converted into speech using the edge_tts library. This
+                library generates natural-sounding audio using a neural voice, with controlled speech rate and pitch to
+                sound friendly and human-like. The generated speech is saved temporarily as an audio file.
+            </p>
+
+            <p>The audio output is then played through the system’s speaker using a media playback process handled by
+                the <bold><i>subprocess</i></bold> and <bold><i>threading</i></bold> libraries. This ensures that audio
+                playback runs smoothly without blocking the main program. After playback, the temporary audio file is
+                deleted to keep the system efficient.
+            </p>
+
+            <p>This entire cycle—listening, processing, responding, and speaking—runs continuously in a loop, allowing
+                real-time interaction. By integrating speech recognition, cloud-based AI processing, and text-to-speech
+                output, AI Desk Buddy provides a hands-free, responsive, and engaging conversational assistant suitable
+                for everyday desktop use.
+            </p>
+
+        </div>
+    </section>
+     <!-- Contact section -->
+  <section class="contact" id="contact">
+    
+
+    <form id="contact-form">
+        <h2 class="heading">Contact <span>Me!</span></h2>
+      <div class="input-box">
+        <input type="text" name="name" placeholder="Enter Your Name" required>
+        <input type="email" name="email" placeholder="Email Address" required>
+      </div>
+
+      <div class="input-box">
+        <input type="number" name="phone" placeholder="Mobile Number" required>
+        <input type="text" name="subject" placeholder="Email Subject" required>
+      </div>
+
+      <textarea name="message" rows="10" placeholder="Your Message" required></textarea>
+
+      <input type="submit" value="Send Message" class="btn">
+
+    </form>
+    <p id="form-status" class="form-status"></p>
+
+  </section>
+
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+    <script src="/static/script.js">
+    </script>
+
+</body>
+
+</html>
